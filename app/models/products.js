@@ -16,6 +16,7 @@ const ProductModel = mongoose.Schema({
         type: Date,
         default: new Date(),
     },
+    images: [String],
     size: String,
     weight: String,
     speed: String,
