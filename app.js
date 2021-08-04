@@ -12,6 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 require('./app/config/mongodb')
 
 app.use('/api/products', require('./app/routes/products'))
+app.use('/api/admins', require('./app/routes/admins'))
 
 const port = process.env.PORT || 8585
 

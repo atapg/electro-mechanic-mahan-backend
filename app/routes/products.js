@@ -1,13 +1,14 @@
 const routes = require('express').Router()
-var mongoose = require('mongoose')
-const ProductModel = require('../models/product')
+const mongoose = require('mongoose')
+const ProductModel = require('../models/products')
+const authMiddleware = require('../middlewares/authenticate')
 
 routes.get('/', async (req, res) => {
     const products = await ProductModel.find()
     res.json(products)
 })
 
-routes.post('/create', async (req, res) => {
+routes.post('/create', authMiddleware, async (req, res) => {
     const { title, description } = req.body
 
     if (!title || !description) {
@@ -51,7 +52,7 @@ routes.get('/:id', async (req, res) => {
     res.send(product)
 })
 
-routes.delete('/:id', async (req, res) => {
+routes.delete('/delete/:id', authMiddleware, async (req, res) => {
     const { id } = req.params
 
     if (!mongoose.isValidObjectId(id)) {
@@ -75,7 +76,7 @@ routes.delete('/:id', async (req, res) => {
     })
 })
 
-routes.patch('/:id', async (req, res) => {
+routes.patch('/update/:id', authMiddleware, async (req, res) => {
     const { id } = req.params
 
     if (!mongoose.isValidObjectId(id)) {
