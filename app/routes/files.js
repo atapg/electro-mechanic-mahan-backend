@@ -67,9 +67,8 @@ routes.delete(
 
         next()
     },
-    // upload.array('images'),
     async (req, res) => {
-        const { img_url, product_id, file_name } = req.body
+        const { product_id, img_url } = req.body
 
         const product = await ProductModel.findById(product_id)
 
@@ -83,9 +82,7 @@ routes.delete(
         }
 
         //delete img from array
-        const index = images.findIndex(
-            (i) => i === `${process.env.BACKEND_URL}/${file_name}`
-        )
+        const index = images.findIndex((i) => i === img_url)
 
         if (index <= -1) {
             return res.status(400).send({
@@ -109,6 +106,9 @@ routes.delete(
             }
         )
 
+        const backendLength = process.env.BACKEND_URL.length + 1
+        const urlLength = img_url.length - backendLength
+        const file_name = img_url.substr(backendLength, urlLength)
         const path = `./public/${file_name}`
 
         fs.unlink(path, (err) => {
