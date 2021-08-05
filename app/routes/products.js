@@ -6,39 +6,38 @@ const upload = require('../utils/multer')
 
 routes.get('/', async (req, res) => {
     const products = await ProductModel.find()
+
+    if (!products) {
+        return res.status(200).send({
+            status: 'Failed',
+            error: 'No products found',
+        })
+    }
+
     res.json(products)
 })
 
-routes.post(
-    '/create',
-    authMiddleware,
-    (req, res, next) => {
-        console.log(req.body)
-        const { title, description } = req.body
+routes.post('/create', authMiddleware, async (req, res) => {
+    const { title, description } = req.body
 
-        if (!title || !description) {
-            return res.status(400).send({
-                status: 'Failed',
-                error: 'Please fill all fields',
-            })
-        }
-
-        next()
-    },
-    upload.array('images'),
-    async (req, res) => {
-        const product = await ProductModel.create(req.body)
-
-        if (!product) {
-            return res.status(400).send({
-                status: 'Failed',
-                error: 'Something went wrong!',
-            })
-        }
-
-        res.status(201).send(product)
+    if (!title || !description) {
+        return res.status(400).send({
+            status: 'Failed',
+            error: 'Please fill all fields',
+        })
     }
-)
+
+    const product = await ProductModel.create(req.body)
+
+    if (!product) {
+        return res.status(400).send({
+            status: 'Failed',
+            error: 'Something went wrong!',
+        })
+    }
+
+    res.status(201).send(product)
+})
 
 routes.get('/:id', async (req, res) => {
     const { id } = req.params
