@@ -3,6 +3,7 @@ const upload = require('../utils/multer')
 const ProductModel = require('../models/products')
 const authMiddleware = require('../middlewares/authenticate')
 const mongoose = require('mongoose')
+const fs = require('fs')
 
 routes.post(
     '/images/:id',
@@ -68,7 +69,7 @@ routes.delete(
     },
     // upload.array('images'),
     async (req, res) => {
-        const { img_url, product_id } = req.body
+        const { img_url, product_id, file_name } = req.body
 
         const product = await ProductModel.findById(product_id)
 
@@ -82,7 +83,9 @@ routes.delete(
         }
 
         //delete img from array
-        const index = images.findIndex((i) => i === img_url)
+        const index = images.findIndex(
+            (i) => i === `${process.env.BACKEND_URL}/${file_name}`
+        )
 
         if (index <= -1) {
             return res.status(400).send({
@@ -105,6 +108,17 @@ routes.delete(
                 }
             }
         )
+
+        const path = `./public/${file_name}`
+
+        fs.unlink(path, (err) => {
+            if (err) {
+                return res.status(400).send({
+                    status: 'Failed',
+                    message: 'Something went wrong!',
+                })
+            }
+        })
 
         try {
             res.json({
