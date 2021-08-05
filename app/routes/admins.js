@@ -4,7 +4,6 @@ const authMiddleware = require('../middlewares/authenticate')
 const adminValidator = require('../validations/admin')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const authenticate = require('../middlewares/authenticate')
 
 routes.post('/login', async (req, res) => {
     const { email, phone, password } = req.body
@@ -116,5 +115,10 @@ routes.patch('/update', authMiddleware, async (req, res) => {
         status: 'Success',
     })
 })
+
+// routes.patch('/change-site-info', authMiddleware, async (req, res) => {
+//     const info = await PublicModel.create(req.body)
+//     res.send(info)
+// })
 
 module.exports = routes

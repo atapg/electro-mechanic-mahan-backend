@@ -16,6 +16,7 @@ require('./app/config/mongodb')
 app.use('/api/products', require('./app/routes/products'))
 app.use('/api/admins', require('./app/routes/admins'))
 app.use('/api/upload', require('./app/routes/files'))
+app.use('/api/public', require('./app/routes/public'))
 
 const port = process.env.PORT || 8585
 
