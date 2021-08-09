@@ -12,7 +12,7 @@ routes.get('/', async (req, res) => {
     }
 
     if (!limit) {
-        limit = 10
+        limit = 9
     }
 
     try {
@@ -41,6 +41,20 @@ routes.get('/', async (req, res) => {
             status: 'Failed',
             error: 'Please fill all fields',
         })
+    }
+})
+
+routes.get('/search', async (req, res) => {
+    const { search } = req.query
+
+    try {
+        const title = new RegExp(search, 'i')
+
+        const products = await ProductModel.find({ $or: [{ title }] })
+
+        res.send(products)
+    } catch (error) {
+        res.status(404).json({ message: error.message })
     }
 })
 
