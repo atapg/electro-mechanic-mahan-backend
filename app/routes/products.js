@@ -2,19 +2,46 @@ const routes = require('express').Router()
 const mongoose = require('mongoose')
 const ProductModel = require('../models/products')
 const authMiddleware = require('../middlewares/authenticate')
-const upload = require('../utils/multer')
 
 routes.get('/', async (req, res) => {
-    const products = await ProductModel.find()
+    let { page } = req.query
+    let { limit } = req.query
 
-    if (!products) {
-        return res.status(200).send({
-            status: 'Failed',
-            error: 'No products found',
-        })
+    if (!page) {
+        page = 1
     }
 
-    res.json(products)
+    if (!limit) {
+        limit = 10
+    }
+
+    try {
+        const startIndex = (Number(page) - 1) * limit
+
+        const total = await ProductModel.countDocuments({})
+        const products = await ProductModel.find()
+            .sort({ _id: -1 })
+            .limit(limit)
+            .skip(startIndex)
+
+        if (!products) {
+            return res.status(200).send({
+                status: 'Failed',
+                error: 'No products found',
+            })
+        }
+
+        res.json({
+            products,
+            page: Number(page),
+            numberOfPages: Math.ceil(total / limit),
+        })
+    } catch (error) {
+        res.status(404).send({
+            status: 'Failed',
+            error: 'Please fill all fields',
+        })
+    }
 })
 
 routes.post('/create', authMiddleware, async (req, res) => {
