@@ -5,6 +5,40 @@ const adminValidator = require('../validations/admin')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
+routes.get('/authenticate', (req, res) => {
+    if (!req.headers.authorization) {
+        return res.status(401).send({
+            message: 'Failed',
+            status: 'Unauthorized',
+        })
+    }
+
+    const authorizationParse = req.headers.authorization.split(' ')
+
+    if (authorizationParse.length < 2) {
+        return res.status(401).send({
+            message: 'Failed',
+            status: 'Unauthorized',
+        })
+    }
+
+    const token = authorizationParse[1]
+
+    jwt.verify(token, process.env.SECRET, async (err, decoded) => {
+        if (err) {
+            return res.status(401).send({
+                message: 'Failed',
+                status: 'Unauthorized',
+            })
+        }
+    })
+
+    res.status(200).send({
+        message: 'Success',
+        status: 'Authorized',
+    })
+})
+
 routes.post('/login', async (req, res) => {
     const { email, phone, password } = req.body
 
@@ -14,18 +48,18 @@ routes.post('/login', async (req, res) => {
     else admin = await AdminsModel.findOne({ phone })
 
     if (!admin) {
-        return res.status(400).send({
+        return res.status(403).send({
             status: 'Failed',
-            error: 'Something went wrong!',
+            error: 'Incorrect credentials!',
         })
     }
 
     const correctPass = await bcrypt.compare(password, admin.password)
 
     if (!correctPass) {
-        return res.status(400).send({
+        return res.status(403).send({
             status: 'Failed',
-            error: 'incorrect credentials!',
+            error: 'Incorrect credentials!',
         })
     }
 

@@ -27,6 +27,15 @@ routes.post('/create', authMiddleware, async (req, res) => {
         })
     }
 
+    const productExist = await ProductModel.findOne({ title })
+
+    if (productExist) {
+        return res.status(400).send({
+            status: 'Failed',
+            error: 'Product already exists!',
+        })
+    }
+
     const product = await ProductModel.create(req.body)
 
     if (!product) {

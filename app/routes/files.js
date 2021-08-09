@@ -22,6 +22,13 @@ routes.post(
     async (req, res) => {
         const { id } = req.params
 
+        if (!req.files) {
+            return res.status(400).send({
+                status: 'Failed',
+                message: 'There is no file!',
+            })
+        }
+
         const product = await ProductModel.findById(id)
 
         const images = product.images
