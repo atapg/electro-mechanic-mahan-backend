@@ -44,6 +44,19 @@ routes.get('/', async (req, res) => {
     }
 })
 
+routes.get('/get-all', async (req, res) => {
+    const products = await ProductModel.find()
+
+    if (!products) {
+        return res.status(200).send({
+            status: 'Failed',
+            error: 'No products found',
+        })
+    }
+
+    res.json(products)
+})
+
 routes.get('/search', async (req, res) => {
     const { search } = req.query
 

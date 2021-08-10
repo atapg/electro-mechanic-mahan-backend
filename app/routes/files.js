@@ -25,7 +25,7 @@ routes.post(
         if (!req.files) {
             return res.status(400).send({
                 status: 'Failed',
-                message: 'There is no file!',
+                error: 'There is no file!',
             })
         }
 
@@ -41,19 +41,19 @@ routes.post(
             if (err) {
                 return res.status(400).send({
                     status: 'Failed',
-                    message: 'Something went wrong!',
+                    error: 'Something went wrong!',
                 })
             }
         })
 
         try {
-            res.json({
+            res.status(200).send({
                 status: 'Success',
                 uploaded: true,
                 url: req.files,
             })
         } catch (error) {
-            res.json({
+            res.status(400).send({
                 status: 'Failed',
                 error,
             })
@@ -84,7 +84,14 @@ routes.delete(
         if (!images) {
             return res.status(400).send({
                 status: 'Failed',
-                message: 'Something went wrong!',
+                error: 'Something went wrong!',
+            })
+        }
+
+        if (!product.images.includes(img_url)) {
+            return res.status(400).send({
+                status: 'Failed',
+                error: 'Something went wrong!',
             })
         }
 
@@ -94,7 +101,7 @@ routes.delete(
         if (index <= -1) {
             return res.status(400).send({
                 status: 'Failed',
-                message: 'Something went wrong!',
+                error: 'Something went wrong!',
             })
         }
 
@@ -107,7 +114,7 @@ routes.delete(
                 if (err) {
                     return res.status(400).send({
                         status: 'Failed',
-                        message: 'Something went wrong!',
+                        error: 'Something went wrong!',
                     })
                 }
             }
@@ -118,23 +125,30 @@ routes.delete(
         const file_name = img_url.substr(backendLength, urlLength)
         const path = `./public/${file_name}`
 
+        if (!fs.existsSync(path)) {
+            return res.status(400).send({
+                status: 'Failed',
+                error: 'File does not exists!',
+            })
+        }
+
         fs.unlink(path, (err) => {
             if (err) {
                 return res.status(400).send({
                     status: 'Failed',
-                    message: 'Something went wrong!',
+                    error: 'Something went wrong!',
                 })
             }
         })
 
         try {
-            res.json({
+            return res.status(200).send({
                 status: 'Success',
                 uploaded: true,
                 url: req.files,
             })
         } catch (error) {
-            res.json({
+            return res.status(200).send({
                 status: 'Failed',
                 error,
             })
