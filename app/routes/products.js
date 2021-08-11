@@ -62,6 +62,7 @@ routes.get('/search', async (req, res) => {
 
     try {
         const title = new RegExp(search, 'i')
+
         const description = new RegExp(search, 'i')
 
         const products = await ProductModel.find({
