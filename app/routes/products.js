@@ -16,12 +16,12 @@ routes.get('/', async (req, res) => {
     }
 
     try {
-        const startIndex = (Number(page) - 1) * limit
+        const startIndex = (Number(page) - 1) * Number(limit)
 
         const total = await ProductModel.countDocuments({})
         const products = await ProductModel.find()
             .sort({ _id: -1 })
-            .limit(limit)
+            .limit(Number(limit))
             .skip(startIndex)
 
         if (!products) {
@@ -34,7 +34,7 @@ routes.get('/', async (req, res) => {
         res.json({
             products,
             page: Number(page),
-            numberOfPages: Math.ceil(total / limit),
+            numberOfPages: Math.ceil(total / Number(limit)),
         })
     } catch (error) {
         res.status(404).send({
