@@ -1,0 +1,6 @@
+{
+    "name": "Electro Mechanic Mahan",
+    "description": "Electro Mechanic Mahan Backend",
+    "repository": "https://github.com/atapg/electro-mechanic-mahan-backend",
+    "keywords": ["node", "express", "mongodb"]
+}
