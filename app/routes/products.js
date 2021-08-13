@@ -2,6 +2,7 @@ const routes = require('express').Router()
 const mongoose = require('mongoose')
 const ProductModel = require('../models/products')
 const authMiddleware = require('../middlewares/authenticate')
+const fs = require('fs')
 
 routes.get('/', async (req, res) => {
     let { page } = req.query
@@ -139,6 +140,15 @@ routes.delete('/delete/:id', authMiddleware, async (req, res) => {
     }
 
     const product = await ProductModel.findByIdAndDelete(id)
+
+    product.images?.forEach((image) => {
+        const backendLength = process.env.BACKEND_URL.length + 1
+        const urlLength = image.length - backendLength
+        const file_name = image.substr(backendLength, urlLength)
+        const path = `./public/${file_name}`
+
+        fs.unlink(path, (err) => {})
+    })
 
     if (!product) {
         return res.status(400).send({

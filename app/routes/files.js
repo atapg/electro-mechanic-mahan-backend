@@ -125,21 +125,9 @@ routes.delete(
         const file_name = img_url.substr(backendLength, urlLength)
         const path = `./public/${file_name}`
 
-        if (!fs.existsSync(path)) {
-            return res.status(400).send({
-                status: 'Failed',
-                error: 'File does not exists!',
-            })
+        if (fs.existsSync(path)) {
+            fs.unlink(path, (err) => {})
         }
-
-        fs.unlink(path, (err) => {
-            if (err) {
-                return res.status(400).send({
-                    status: 'Failed',
-                    error: 'Something went wrong!',
-                })
-            }
-        })
 
         try {
             return res.status(200).send({
@@ -155,5 +143,46 @@ routes.delete(
         }
     }
 )
+
+routes.post('/image-with-url', authMiddleware, async (req, res) => {
+    const { images, product_id } = req.body
+
+    if (images.length < 1) {
+        return res.status(400).send({
+            status: 'Failed',
+            error: 'No images!',
+        })
+    }
+
+    const product = await ProductModel.findById(product_id)
+
+    if (!product) {
+        return res.status(400).send({
+            status: 'Failed',
+            error: 'Product not found!',
+        })
+    }
+
+    const productImages = product.images
+
+    images.forEach((img) => {
+        productImages.push(img)
+    })
+
+    ProductModel.findByIdAndUpdate(
+        product_id,
+        { images: productImages },
+        (err, result) => {
+            if (err) {
+                return res.status(400).send({
+                    status: 'Failed',
+                    error: 'Something went wrong!',
+                })
+            }
+
+            return res.send('Success')
+        }
+    )
+})
 
 module.exports = routes
