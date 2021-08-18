@@ -1,24 +1,25 @@
-const routes = require('express').Router()
-const AdminsModel = require('../models/admins')
-const authMiddleware = require('../middlewares/authenticate')
-const adminValidator = require('../validations/admin')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const routes = require("express").Router()
+const AdminsModel = require("../models/admins")
+const authMiddleware = require("../middlewares/authenticate")
+const adminValidator = require("../validations/admin")
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const mongoose = require("mongoose")
 
-routes.get('/authenticate', (req, res) => {
+routes.get("/authenticate", (req, res) => {
     if (!req.headers.authorization) {
         return res.status(401).send({
-            message: 'Failed',
-            status: 'Unauthorized',
+            message: "Failed",
+            status: "Unauthorized",
         })
     }
 
-    const authorizationParse = req.headers.authorization.split(' ')
+    const authorizationParse = req.headers.authorization.split(" ")
 
     if (authorizationParse.length < 2) {
         return res.status(401).send({
-            message: 'Failed',
-            status: 'Unauthorized',
+            message: "Failed",
+            status: "Unauthorized",
         })
     }
 
@@ -27,19 +28,19 @@ routes.get('/authenticate', (req, res) => {
     jwt.verify(token, process.env.SECRET, async (err, decoded) => {
         if (err) {
             return res.status(401).send({
-                message: 'Failed',
-                status: 'Unauthorized',
+                message: "Failed",
+                status: "Unauthorized",
             })
         }
     })
 
     res.status(200).send({
-        message: 'Success',
-        status: 'Authorized',
+        message: "Success",
+        status: "Authorized",
     })
 })
 
-routes.post('/login', async (req, res) => {
+routes.post("/login", async (req, res) => {
     const { email, phone, password } = req.body
 
     let admin
@@ -49,8 +50,8 @@ routes.post('/login', async (req, res) => {
 
     if (!admin) {
         return res.status(403).send({
-            status: 'Failed',
-            error: 'Incorrect credentials!',
+            status: "Failed",
+            error: "Incorrect credentials!",
         })
     }
 
@@ -58,13 +59,13 @@ routes.post('/login', async (req, res) => {
 
     if (!correctPass) {
         return res.status(403).send({
-            status: 'Failed',
-            error: 'Incorrect credentials!',
+            status: "Failed",
+            error: "Incorrect credentials!",
         })
     }
 
     const token = jwt.sign({ id: admin._id }, process.env.SECRET, {
-        expiresIn: '7d',
+        expiresIn: "7d",
     })
 
     res.send({
@@ -73,13 +74,13 @@ routes.post('/login', async (req, res) => {
     })
 })
 
-routes.post('/register', authMiddleware, async (req, res) => {
+routes.post("/register", authMiddleware, async (req, res) => {
     const { phone, email, name, password, lastName } = req.body
 
     if (!adminValidator(req.body)) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Please fill all fields',
+            status: "Failed",
+            error: "Please fill all fields",
         })
     }
 
@@ -87,67 +88,126 @@ routes.post('/register', authMiddleware, async (req, res) => {
 
     if (existedUser) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'User already exist!',
+            status: "Failed",
+            error: "User already exist!",
         })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const admin = await AdminsModel.create({
+    if (hashedPassword) {
+        const admin = await AdminsModel.create({
+            name,
+            lastName,
+            password: hashedPassword,
+            email,
+            phone,
+        })
+
+        if (!admin) {
+            return res.status(400).send({
+                status: "Failed",
+                error: "Something went wrong!",
+            })
+        }
+    }
+
+    res.send({
+        status: "Success",
+    })
+})
+
+routes.delete("/delete", authMiddleware, (req, res) => {
+    const { admin_id } = req.body
+
+    AdminsModel.findByIdAndRemove(admin_id, (err, result) => {
+        if (err) {
+            return res.status(400).send({
+                status: "Failed",
+                error: "Something went wrong!",
+            })
+        }
+    })
+
+    res.send({
+        status: "Success",
+    })
+})
+
+routes.patch("/update", authMiddleware, async (req, res) => {
+    const { name, lastName, phone, email, password, id } = req.body
+
+    const updated = await AdminsModel.findByIdAndUpdate(id, {
         name,
         lastName,
-        password: hashedPassword,
-        email,
         phone,
+        email,
     })
-
-    if (!admin) {
-        return res.status(400).send({
-            status: 'Failed',
-            error: 'Something went wrong!',
-        })
-    }
-
-    res.send({
-        status: 'Success',
-    })
-})
-
-routes.delete('/delete', authMiddleware, async (req, res) => {
-    const deleted = await AdminsModel.findByIdAndRemove(
-        req.authenticatedUser._id,
-        req.body
-    )
-
-    if (!deleted) {
-        return res.status(400).send({
-            status: 'Failed',
-            error: 'Something went wrong!',
-        })
-    }
-
-    res.send({
-        status: 'Success',
-    })
-})
-
-routes.patch('/update', authMiddleware, async (req, res) => {
-    const updated = await AdminsModel.findByIdAndUpdate(
-        req.authenticatedUser._id,
-        req.body
-    )
 
     if (!updated) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Something went wrong!',
+            status: "Failed",
+            error: "Something went wrong!",
+        })
+    }
+
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        AdminsModel.findByIdAndUpdate(
+            id,
+            { password: hashedPassword },
+            (err, result) => {
+                if (err) {
+                    return res.status(400).send({
+                        status: "Failed",
+                        error: "Something went wrong!",
+                    })
+                }
+            }
+        )
+    }
+
+    res.send({
+        status: "Success",
+    })
+})
+
+routes.get("/get-all", authMiddleware, async (req, res) => {
+    const admins = await AdminsModel.find().select("-password")
+
+    if (!admins) {
+        return res.status(400).send({
+            status: "Failed",
+            error: "No admins found!",
         })
     }
 
     res.send({
-        status: 'Success',
+        admins,
     })
+})
+
+routes.get("/:id", authMiddleware, async (req, res) => {
+    const { id } = req.params
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).send({
+            status: "Failed",
+            error: "Admin not found!",
+        })
+    }
+
+    const admin = await AdminsModel.findById(id).select("-password")
+
+    if (!admin) {
+        return res.status(400).send({
+            status: "Failed",
+            error: "Admin not found!",
+        })
+    }
+
+    res.send(admin)
 })
 
 // routes.patch('/change-site-info', authMiddleware, async (req, res) => {
