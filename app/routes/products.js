@@ -1,10 +1,10 @@
-const routes = require('express').Router()
-const mongoose = require('mongoose')
-const ProductModel = require('../models/products')
-const authMiddleware = require('../middlewares/authenticate')
-const fs = require('fs')
+const routes = require("express").Router()
+const mongoose = require("mongoose")
+const ProductModel = require("../models/products")
+const authMiddleware = require("../middlewares/authenticate")
+const fs = require("fs")
 
-routes.get('/', async (req, res) => {
+routes.get("/", async (req, res) => {
     let { page } = req.query
     let { limit } = req.query
 
@@ -27,8 +27,8 @@ routes.get('/', async (req, res) => {
 
         if (!products) {
             return res.status(200).send({
-                status: 'Failed',
-                error: 'No products found',
+                status: "Failed",
+                error: "No products found",
             })
         }
 
@@ -39,32 +39,32 @@ routes.get('/', async (req, res) => {
         })
     } catch (error) {
         res.status(404).send({
-            status: 'Failed',
-            error: 'Please fill all fields',
+            status: "Failed",
+            error: "Something went wrong!",
         })
     }
 })
 
-routes.get('/get-all', async (req, res) => {
+routes.get("/get-all", async (req, res) => {
     const products = await ProductModel.find()
 
     if (!products) {
         return res.status(200).send({
-            status: 'Failed',
-            error: 'No products found',
+            status: "Failed",
+            error: "No products found",
         })
     }
 
     res.json(products)
 })
 
-routes.get('/search', async (req, res) => {
+routes.get("/search", async (req, res) => {
     const { search } = req.query
 
     try {
-        const title = new RegExp(search, 'i')
+        const title = new RegExp(search, "i")
 
-        const description = new RegExp(search, 'i')
+        const description = new RegExp(search, "i")
 
         const products = await ProductModel.find({
             $or: [{ title }, { description }],
@@ -76,13 +76,13 @@ routes.get('/search', async (req, res) => {
     }
 })
 
-routes.post('/create', authMiddleware, async (req, res) => {
+routes.post("/create", authMiddleware, async (req, res) => {
     const { title, description } = req.body
 
     if (!title || !description) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Please fill all fields',
+            status: "Failed",
+            error: "Please fill all fields",
         })
     }
 
@@ -90,8 +90,8 @@ routes.post('/create', authMiddleware, async (req, res) => {
 
     if (productExist) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product already exists!',
+            status: "Failed",
+            error: "Product already exists!",
         })
     }
 
@@ -99,21 +99,21 @@ routes.post('/create', authMiddleware, async (req, res) => {
 
     if (!product) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Something went wrong!',
+            status: "Failed",
+            error: "Something went wrong!",
         })
     }
 
     res.status(201).send(product)
 })
 
-routes.get('/:id', async (req, res) => {
+routes.get("/:id", async (req, res) => {
     const { id } = req.params
 
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
@@ -121,21 +121,21 @@ routes.get('/:id', async (req, res) => {
 
     if (!product) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
     res.send(product)
 })
 
-routes.delete('/delete/:id', authMiddleware, async (req, res) => {
+routes.delete("/delete/:id", authMiddleware, async (req, res) => {
     const { id } = req.params
 
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
@@ -152,23 +152,23 @@ routes.delete('/delete/:id', authMiddleware, async (req, res) => {
 
     if (!product) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
     res.send({
-        status: 'Success',
+        status: "Success",
     })
 })
 
-routes.patch('/update/:id', authMiddleware, async (req, res) => {
+routes.patch("/update/:id", authMiddleware, async (req, res) => {
     const { id } = req.params
 
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
@@ -176,8 +176,8 @@ routes.patch('/update/:id', authMiddleware, async (req, res) => {
 
     if (!product) {
         return res.status(400).send({
-            status: 'Failed',
-            error: 'Product not found!',
+            status: "Failed",
+            error: "Product not found!",
         })
     }
 
